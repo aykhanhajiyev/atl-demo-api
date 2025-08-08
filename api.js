@@ -5,10 +5,10 @@ let pool = globalThis.__db_pool;
 export async function getPool() {
   if (!pool) {
     pool = mysql.createPool({
-      host: process.env.DB_HOST,
-      user: process.env.DB_USER,
-      password: process.env.DB_PASS,
-      database: process.env.DB_NAME,
+      host: "srv975.hstgr.io",
+      user: "u267145340_aykhanhajiyev",
+      password: "Ayxan6354385**",
+      database: "u267145340_atl_demo_api",
       waitForConnections: true,
       connectionLimit: 5
     });
