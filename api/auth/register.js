@@ -1,8 +1,7 @@
 import fs from "fs/promises";
 import path from "path";
-import jwt from "jsonwebtoken";
 
-const filePath = path.join(process.cwd(), "users.txt");
+const filePath = path.join("/tmp", "users.txt"); // writeable folder
 
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method Not Allowed" });
