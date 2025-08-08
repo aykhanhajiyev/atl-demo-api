@@ -1,23 +1,30 @@
-import bcrypt from "bcrypt";
-import { getPool } from "../_db.js";
+import fs from "fs/promises";
+import path from "path";
+import jwt from "jsonwebtoken";
+
+const filePath = path.join(process.cwd(), "users.txt");
 
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method Not Allowed" });
+
   const { email, password, name = "" } = req.body || {};
-  if (!email || !password || password.length < 6) {
-    return res.status(400).json({ error: "Valid email and password (>=6) required" });
-  }
+  if (!email || !password) return res.status(400).json({ error: "email and password required" });
+
+  let users = [];
   try {
-    const pool = await getPool();
-    const hash = await bcrypt.hash(password, 10);
-    const [r] = await pool.query(
-      "INSERT INTO users (email, password_hash, name) VALUES (?, ?, ?)",
-      [email.trim(), hash, name.trim()]
-    );
-    return res.status(201).json({ id: r.insertId, email, name });
-  } catch (e) {
-    if (e.code === "ER_DUP_ENTRY") return res.status(409).json({ error: "Email already exists" });
-    console.error(e);
-    return res.status(500).json({ error: "Server error" });
+    const file = await fs.readFile(filePath, "utf8");
+    users = JSON.parse(file);
+  } catch {
+    users = [];
   }
+
+  if (users.find(u => u.email === email)) {
+    return res.status(409).json({ error: "Email already exists" });
+  }
+
+  const newUser = { id: Date.now(), email, password, name };
+  users.push(newUser);
+  await fs.writeFile(filePath, JSON.stringify(users, null, 2));
+
+  res.status(201).json({ id: newUser.id, email: newUser.email, name: newUser.name });
 }
